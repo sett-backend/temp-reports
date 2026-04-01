@@ -908,6 +908,7 @@
 </div>
 
 <script>
+window.addEventListener('load', function() {
 // Category chart
 const catCtx = document.getElementById('categoryChart').getContext('2d');
 new Chart(catCtx, {
@@ -1016,6 +1017,10 @@ new Chart(gamesCtx, {
       }
     }
   }
+});
+
+// Force resize after render
+setTimeout(() => { Object.values(Chart.instances).forEach(c => c.resize()); }, 100);
 });
 </script>
 </body>
