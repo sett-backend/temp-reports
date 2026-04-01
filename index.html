@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Playable Revision Analysis — Last 7 Days</title>
+<link href="https://fonts.googleapis.com/css2?family=League+Gothic&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  :root {
+    --bg: #0A0A14;
+    --surface: #12121E;
+    --surface2: #1A1A2E;
+    --purple: #6C3CE1;
+    --purple-light: #8B5CF6;
+    --pink: #FF1493;
+    --pink-light: #FF69B4;
+    --text: #F0F0F8;
+    --text-muted: #888899;
+    --border: #2A2A3E;
+    --green: #22C55E;
+    --orange: #F59E0B;
+    --red: #EF4444;
+    --cyan: #06B6D4;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Manrope', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  .header {
+    background: linear-gradient(135deg, #0A0A14 0%, #1A0A2E 50%, #0A0A14 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 40px 48px 36px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(108,60,225,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .header-tag {
+    font-family: 'Manrope', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--purple-light);
+    margin-bottom: 12px;
+  }
+
+  .header h1 {
+    font-family: 'League Gothic', sans-serif;
+    font-size: 52px;
+    font-weight: 400;
+    letter-spacing: 1px;
+    line-height: 1;
+    margin-bottom: 16px;
+    background: linear-gradient(135deg, #fff 0%, #c4b5fd 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .header-meta {
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+
+  .header-meta span {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 48px;
+  }
+
+  /* Metric Cards */
+  .metrics-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+
+  .metric-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--accent, var(--purple));
+  }
+
+  .metric-card.purple { --accent: var(--purple); }
+  .metric-card.pink { --accent: var(--pink); }
+  .metric-card.cyan { --accent: var(--cyan); }
+  .metric-card.orange { --accent: var(--orange); }
+
+  .metric-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .metric-value {
+    font-family: 'League Gothic', sans-serif;
+    font-size: 48px;
+    line-height: 1;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .metric-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  /* Sections */
+  .section {
+    margin-bottom: 48px;
+  }
+
+  .section-title {
+    font-family: 'League Gothic', sans-serif;
+    font-size: 28px;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+    margin-bottom: 24px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Chart container */
+  .chart-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 40px;
+  }
+
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+  }
+
+  .chart-title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+  }
+
+  .chart-container {
+    position: relative;
+    height: 280px;
+  }
+
+  /* Category cards */
+  .categories-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 40px;
+  }
+
+  .category-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    border-left: 3px solid var(--cat-color, var(--purple));
+  }
+
+  .cat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .cat-name {
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--text);
+  }
+
+  .cat-badge {
+    background: rgba(108,60,225,0.2);
+    border: 1px solid rgba(108,60,225,0.4);
+    border-radius: 20px;
+    padding: 3px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--purple-light);
+  }
+
+  .cat-bar {
+    background: var(--border);
+    border-radius: 4px;
+    height: 6px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+
+  .cat-bar-fill {
+    height: 100%;
+    background: var(--cat-color, var(--purple));
+    border-radius: 4px;
+    transition: width 1s ease;
+  }
+
+  .cat-examples {
+    list-style: none;
+  }
+
+  .cat-examples li {
+    font-size: 12px;
+    color: var(--text-muted);
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    line-height: 1.5;
+  }
+
+  .cat-examples li:last-child { border-bottom: none; }
+
+  .example-game {
+    color: var(--purple-light);
+    font-weight: 600;
+    font-size: 11px;
+    display: block;
+    margin-bottom: 3px;
+    letter-spacing: 0.5px;
+  }
+
+  .example-quote {
+    color: var(--text);
+  }
+
+  /* Table */
+  .table-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 40px;
+  }
+
+  .table-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .table-header h3 {
+    font-family: 'League Gothic', sans-serif;
+    font-size: 20px;
+    font-weight: 400;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  thead th {
+    padding: 12px 24px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+
+  tbody tr:hover { background: var(--surface2); }
+  tbody tr:last-child { border-bottom: none; }
+
+  tbody td {
+    padding: 14px 24px;
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .game-tag {
+    display: inline-block;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  .bar-inline {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .bar-inline-fill {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--purple);
+  }
+
+  /* Finding cards */
+  .findings-list {
+    display: grid;
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+
+  .finding-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+
+  .finding-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  .finding-icon.red { background: rgba(239,68,68,0.15); }
+  .finding-icon.orange { background: rgba(245,158,11,0.15); }
+  .finding-icon.purple { background: rgba(108,60,225,0.15); }
+  .finding-icon.cyan { background: rgba(6,182,212,0.15); }
+
+  .finding-title {
+    font-weight: 700;
+    font-size: 15px;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+
+  .finding-body {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+
+  .finding-evidence {
+    margin-top: 12px;
+    padding: 12px 16px;
+    background: var(--surface2);
+    border-left: 3px solid var(--purple);
+    border-radius: 4px;
+    font-size: 12px;
+    color: var(--text-muted);
+    font-style: italic;
+    line-height: 1.6;
+  }
+
+  /* Methodology */
+  .methodology {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px;
+    margin-top: 48px;
+  }
+
+  .methodology h3 {
+    font-family: 'League Gothic', sans-serif;
+    font-size: 22px;
+    margin-bottom: 20px;
+    color: var(--text-muted);
+  }
+
+  .methodology p, .methodology li {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.8;
+    margin-bottom: 8px;
+  }
+
+  .methodology strong { color: var(--text); }
+
+  .footer {
+    padding: 32px 48px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+
+  .footer-brand {
+    color: var(--purple-light);
+    font-weight: 700;
+  }
+
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .tag-red { background: rgba(239,68,68,0.2); color: #FC8181; }
+  .tag-orange { background: rgba(245,158,11,0.2); color: #FBB040; }
+  .tag-green { background: rgba(34,197,94,0.2); color: #6EE7B7; }
+  .tag-purple { background: rgba(108,60,225,0.2); color: var(--purple-light); }
+
+  .highlight {
+    color: var(--pink);
+    font-weight: 700;
+  }
+
+  /* Specific top issue count numbers */
+  .issue-count {
+    font-family: 'League Gothic', sans-serif;
+    font-size: 20px;
+    color: var(--text);
+  }
+
+  /* Repeat indicator */
+  .repeat-indicator {
+    color: var(--orange);
+    font-size: 11px;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-tag">Revision Analysis — March 25 – April 1, 2026</div>
+  <h1>PLAYABLE AD REVISIONS</h1>
+  <div class="header-meta">
+    <span>207</span> revision feedback messages across
+    <span>65</span> unique tasks and
+    <span>15</span> games — 7-day window
+    &nbsp;&nbsp;|&nbsp;&nbsp;
+    Prepared for Sergey Bukhman, Head of Product
+    &nbsp;&nbsp;|&nbsp;&nbsp;
+    April 1, 2026
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Metrics Row -->
+  <div class="metrics-row">
+    <div class="metric-card purple">
+      <div class="metric-label">Unique Tasks</div>
+      <div class="metric-value">65</div>
+      <div class="metric-sub">with at least 1 revision</div>
+    </div>
+    <div class="metric-card pink">
+      <div class="metric-label">Total Feedback Msgs</div>
+      <div class="metric-value">207</div>
+      <div class="metric-sub">3.2 avg per task</div>
+    </div>
+    <div class="metric-card cyan">
+      <div class="metric-label">Games Affected</div>
+      <div class="metric-value">15</div>
+      <div class="metric-sub">across all customers</div>
+    </div>
+    <div class="metric-card orange">
+      <div class="metric-label">Most Revised Game</div>
+      <div class="metric-value">11</div>
+      <div class="metric-sub">tasks — free-cash & solitaire-cash (tied)</div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="chart-row">
+    <div class="chart-card">
+      <div class="chart-title">Issue Categories (% of tasks affected)</div>
+      <div class="chart-container">
+        <canvas id="categoryChart"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Revisions by Game (unique tasks)</div>
+      <div class="chart-container">
+        <canvas id="gamesChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Issue Categories -->
+  <div class="section">
+    <div class="section-title">Issue Categories — Deep Dive</div>
+    <div class="categories-grid">
+
+      <!-- Compliance / Legal -->
+      <div class="category-card" style="--cat-color: #EF4444;">
+        <div class="cat-header">
+          <div class="cat-name">Compliance / Legal</div>
+          <div class="cat-badge" style="background:rgba(239,68,68,0.15);border-color:rgba(239,68,68,0.4);color:#FC8181;">22 tasks — 34%</div>
+        </div>
+        <div class="cat-bar"><div class="cat-bar-fill" style="width:34%;background:#EF4444;"></div></div>
+        <ul class="cat-examples">
+          <li>
+            <span class="example-game">SOLITAIRE-CASH — Task 1012</span>
+            <span class="example-quote">"let's avoid saying players will win a specific amount, since we can't actually guarantee that. It's better to keep it a bit more open, like 'You could win cash'"</span>
+          </li>
+          <li>
+            <span class="example-game">BUBBLE-CASH — Task 2595</span>
+            <span class="example-quote">"Even though I like this idea, we can't present it as if it's possible to get luxury things through the game"</span>
+          </li>
+          <li>
+            <span class="example-game">FREE-CASH — Multiple tasks (2579, 3101, 3306)</span>
+            <span class="example-quote">"Remove the Sett logo at the beginning" (repeated 6+ times across different tasks)</span>
+          </li>
+          <li>
+            <span class="example-game">SOLITAIRE-CASH — Multiple tasks</span>
+            <span class="example-quote">"add disclaimer — No rewards are provided for ad play"</span>
+          </li>
+        </ul>
+        <p style="margin-top:12px;font-size:12px;color:#888;"><strong style="color:#FC8181;">Sub-issues:</strong> Misleading earnings claims (9 tasks) · Missing disclaimer (11 tasks) · Sett branding in builds (6 tasks)</p>
+      </div>
+
+      <!-- Store Trigger & CTA -->
+      <div class="category-card" style="--cat-color: #F59E0B;">
+        <div class="cat-header">
+          <div class="cat-name">Store Trigger & CTA</div>
+          <div class="cat-badge" style="background:rgba(245,158,11,0.15);border-color:rgba(245,158,11,0.4);color:#FBB040;">32 tasks — 49%</div>
+        </div>
+        <div class="cat-bar"><div class="cat-bar-fill" style="width:49%;background:#F59E0B;"></div></div>
+        <ul class="cat-examples">
+          <li>
+            <span class="example-game">BUBBLE-CASH — Task 3179 (3 separate messages)</span>
+            <span class="example-quote">"cta is out of screen" — sent three times before it was fixed</span>
+          </li>
+          <li>
+            <span class="example-game">FREE-CASH — Task 3330</span>
+            <span class="example-quote">"after the required trigger, there should be an immediate redirect to the store and not to the final screen"</span>
+          </li>
+          <li>
+            <span class="example-game">TRAVEL-TOWN — Task 1448</span>
+            <span class="example-quote">"ironsource cta needs to be on the right side · no auto redirect at the end"</span>
+          </li>
+          <li>
+            <span class="example-game">FREE-CASH — Task 3249</span>
+            <span class="example-quote">"please add these versions: Full, 3 Clicks, 5 Clicks, 30 sec — Each trigger leads directly to the end card"</span>
+          </li>
+        </ul>
+        <p style="margin-top:12px;font-size:12px;color:#888;"><strong style="color:#FBB040;">Sub-issues:</strong> CTA position wrong (2 tasks) · Triggers not working (3 tasks) · Wrong redirect flow (4 tasks) · Missing trigger versions (4 tasks)</p>
+      </div>
+
+      <!-- Build Export & Naming -->
+      <div class="category-card" style="--cat-color: #06B6D4;">
+        <div class="cat-header">
+          <div class="cat-name">Build Export & Naming</div>
+          <div class="cat-badge" style="background:rgba(6,182,212,0.15);border-color:rgba(6,182,212,0.4);color:#67E8F9;">21 tasks — 32%</div>
+        </div>
+        <div class="cat-bar"><div class="cat-bar-fill" style="width:32%;background:#06B6D4;"></div></div>
+        <ul class="cat-examples">
+          <li>
+            <span class="example-game">SOLITAIRE-GRAND-HARVEST — Task 1630 & 1290</span>
+            <span class="example-quote">"Please add as well to final export zip file the following network builds: Moloco, Mintegral, Facebook, Liftoff"</span>
+          </li>
+          <li>
+            <span class="example-game">FREE-CASH — Multiple tasks (3627, 3331, 3249)</span>
+            <span class="example-quote">"Add Smadex network build" — same request on 4 separate tasks</span>
+          </li>
+          <li>
+            <span class="example-game">SOLITAIRE-CASH — Tasks 1012, 2024</span>
+            <span class="example-quote">"naming" — file naming format incorrect</span>
+          </li>
+          <li>
+            <span class="example-game">KLONDIKE — Task 544</span>
+            <span class="example-quote">"only Google should be zipped"</span>
+          </li>
+        </ul>
+        <p style="margin-top:12px;font-size:12px;color:#888;"><strong style="color:#67E8F9;">Sub-issues:</strong> Missing network builds (13 tasks) · File naming wrong (8 tasks)</p>
+      </div>
+
+      <!-- Visual & Layout -->
+      <div class="category-card" style="--cat-color: #8B5CF6;">
+        <div class="cat-header">
+          <div class="cat-name">Visual & Layout</div>
+          <div class="cat-badge" style="background:rgba(139,92,246,0.15);border-color:rgba(139,92,246,0.4);color:#C4B5FD;">31 tasks — 48%</div>
+        </div>
+        <div class="cat-bar"><div class="cat-bar-fill" style="width:48%;background:#8B5CF6;"></div></div>
+        <ul class="cat-examples">
+          <li>
+            <span class="example-game">FREE-CASH — Task 3249</span>
+            <span class="example-quote">"Change color of the floor to be wooden or anything else, it's the same as the original playable, this is a new concept it needs to be different visually"</span>
+          </li>
+          <li>
+            <span class="example-game">WOODOKU-BLAST — Task 2450</span>
+            <span class="example-quote">"Let's try making the color less toxic. It's too harsh on the eyes right now. Reduce the purple saturation and blue a bit"</span>
+          </li>
+          <li>
+            <span class="example-game">TRAVEL-TOWN — Task 1449</span>
+            <span class="example-quote">"resize problem, when I change from portrait to landscape in the middle of the win screen I see 2 pictures of the puzzle"</span>
+          </li>
+          <li>
+            <span class="example-game">FREE-CASH — Task 2580</span>
+            <span class="example-quote">"check the iPad screens. The text should not overlap the game board."</span>
+          </li>
+        </ul>
+        <p style="margin-top:12px;font-size:12px;color:#888;"><strong style="color:#C4B5FD;">Sub-issues:</strong> Color/background (9 tasks) · Landscape bugs (3 tasks) · Layout overlaps (4 tasks) · Text quality (2 tasks)</p>
+      </div>
+
+      <!-- Bug / Crash -->
+      <div class="category-card" style="--cat-color: #EC4899;">
+        <div class="cat-header">
+          <div class="cat-name">Bug / Crash</div>
+          <div class="cat-badge" style="background:rgba(236,72,153,0.15);border-color:rgba(236,72,153,0.4);color:#F9A8D4;">17 tasks — 26%</div>
+        </div>
+        <div class="cat-bar"><div class="cat-bar-fill" style="width:26%;background:#EC4899;"></div></div>
+        <ul class="cat-examples">
+          <li>
+            <span class="example-game">MATCH-FACTORY — Task 2123</span>
+            <span class="example-quote">"In the 6item version, after collecting 6 items the game freezes and it doesn't redirect to store"</span>
+          </li>
+          <li>
+            <span class="example-game">MATCH-FACTORY — Task 2124 (7 back-and-forth messages)</span>
+            <span class="example-quote">"60s version redirects after 30s" — took 7 revision exchanges to resolve</span>
+          </li>
+          <li>
+            <span class="example-game">BUBBLE-CASH — Task 3179</span>
+            <span class="example-quote">"I can't share it, it gives a Fail message"</span>
+          </li>
+          <li>
+            <span class="example-game">MATCH-FACTORY — Task 1562</span>
+            <span class="example-quote">"when we tap play button it directs the store but we can't keep playing after returning to the playable"</span>
+          </li>
+        </ul>
+        <p style="margin-top:12px;font-size:12px;color:#888;"><strong style="color:#F9A8D4;">Sub-issues:</strong> Build not loading (2 tasks) · Game freeze/error (5 tasks) · Broken play button (4 tasks) · Share broken (1 task)</p>
+      </div>
+
+      <!-- Game Mechanic / Experience -->
+      <div class="category-card" style="--cat-color: #22C55E;">
+        <div class="cat-header">
+          <div class="cat-name">Game Mechanic / Experience</div>
+          <div class="cat-badge" style="background:rgba(34,197,94,0.15);border-color:rgba(34,197,94,0.4);color:#6EE7B7;">36 tasks — 55%</div>
+        </div>
+        <div class="cat-bar"><div class="cat-bar-fill" style="width:55%;background:#22C55E;"></div></div>
+        <ul class="cat-examples">
+          <li>
+            <span class="example-game">WOODOKU-BLAST — Task 2129</span>
+            <span class="example-quote">"The current execution doesn't pass the gameplay test — the 'climb away by destroying tower layers' logic doesn't hold up. Suggest a full concept rework: Combine tower building with a rising lava element."</span>
+          </li>
+          <li>
+            <span class="example-game">SOLITAIRE-GRAND-HARVEST — Task 2973</span>
+            <span class="example-quote">"The experience still feels like a fail state. Currently there are 3 taps that don't flip any card, and on the 4th tap the user is sent to the store — this doesn't create any desire to play."</span>
+          </li>
+          <li>
+            <span class="example-game">BUBBLE-CASH — Task 1972</span>
+            <span class="example-quote">"Make the speed of the bubbles faster like the other ads"</span>
+          </li>
+          <li>
+            <span class="example-game">MATCH-FACTORY — Task 1756</span>
+            <span class="example-quote">"We didn't like the mechanism where we both need to select and the related box. Instead when we tap the ball it can directly go the correct box."</span>
+          </li>
+        </ul>
+        <p style="margin-top:12px;font-size:12px;color:#888;"><strong style="color:#6EE7B7;">Sub-issues:</strong> Wrong mechanic feel (12 tasks) · Too fast/slow (4 tasks) · Game ends too early (3 tasks) · Concept rework needed (2 tasks)</p>
+      </div>
+
+      <!-- Tutorial & End Card -->
+      <div class="category-card" style="--cat-color: #F97316;">
+        <div class="cat-header">
+          <div class="cat-name">Tutorial & End Card</div>
+          <div class="cat-badge" style="background:rgba(249,115,22,0.15);border-color:rgba(249,115,22,0.4);color:#FED7AA;">15 tasks — 23%</div>
+        </div>
+        <div class="cat-bar"><div class="cat-bar-fill" style="width:23%;background:#F97316;"></div></div>
+        <ul class="cat-examples">
+          <li>
+            <span class="example-game">HEXA-SORT — Tasks 2158, 1361, 1520</span>
+            <span class="example-quote">"Empty tile visibility — it's not clear which tiles are empty and available for placement. Add a visual indicator to highlight available tiles"</span>
+          </li>
+          <li>
+            <span class="example-game">HEXA-SORT — Task 2158</span>
+            <span class="example-quote">"Tutorial dimming — when the tutorial text is displayed, dim everything else on screen so the instruction is easy to read"</span>
+          </li>
+          <li>
+            <span class="example-game">SOLITAIRE-CASH — Task 689</span>
+            <span class="example-quote">"The end card needs work. Remove the game logo from the previous screen as well as 'XX mode complete'. That green bar behind the copy isn't working — let's either darken the gameplay background or apply a blur effect instead."</span>
+          </li>
+          <li>
+            <span class="example-game">BINGO-CASH — Task 2407</span>
+            <span class="example-quote">"end card CTA is overlapping the logo"</span>
+          </li>
+        </ul>
+        <p style="margin-top:12px;font-size:12px;color:#888;"><strong style="color:#FED7AA;">Sub-issues:</strong> Tutorial clarity (6 tasks) · End card polish (9 tasks)</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Top Games Table -->
+  <div class="section">
+    <div class="section-title">Top Games by Revision Volume</div>
+    <div class="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Game</th>
+            <th>Unique Tasks</th>
+            <th>Volume</th>
+            <th>Top Issue Type</th>
+            <th>Auditors</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="game-tag">free-cash</span></td>
+            <td>11 tasks</td>
+            <td><div class="bar-inline"><div class="bar-inline-fill" style="width:100px;background:#6C3CE1;"></div>52 msgs</div></td>
+            <td><span class="tag tag-red">Compliance</span> <span class="tag tag-orange">Triggers</span></td>
+            <td>3 auditors</td>
+          </tr>
+          <tr>
+            <td><span class="game-tag">solitaire-cash</span></td>
+            <td>11 tasks</td>
+            <td><div class="bar-inline"><div class="bar-inline-fill" style="width:92px;background:#6C3CE1;"></div>30 msgs</div></td>
+            <td><span class="tag tag-red">Compliance</span> <span class="tag tag-purple">End Card</span></td>
+            <td>6 auditors</td>
+          </tr>
+          <tr>
+            <td><span class="game-tag">match-factory</span></td>
+            <td>8 tasks</td>
+            <td><div class="bar-inline"><div class="bar-inline-fill" style="width:70px;background:#6C3CE1;"></div>16 msgs</div></td>
+            <td><span class="tag tag-orange">Bugs</span> <span class="tag tag-green">Mechanic</span></td>
+            <td>2 auditors</td>
+          </tr>
+          <tr>
+            <td><span class="game-tag">bubble-cash</span></td>
+            <td>7 tasks</td>
+            <td><div class="bar-inline"><div class="bar-inline-fill" style="width:100px;background:#8B5CF6;"></div>38 msgs</div></td>
+            <td><span class="tag tag-red">Compliance</span> <span class="tag tag-orange">Triggers</span></td>
+            <td>1 auditor</td>
+          </tr>
+          <tr>
+            <td><span class="game-tag">solitaire-grand-harvest</span></td>
+            <td>5 tasks</td>
+            <td><div class="bar-inline"><div class="bar-inline-fill" style="width:42px;background:#6C3CE1;"></div>7 msgs</div></td>
+            <td><span class="tag tag-purple">Export</span> <span class="tag tag-green">Mechanic</span></td>
+            <td>2 auditors</td>
+          </tr>
+          <tr>
+            <td><span class="game-tag">bingo-cash</span></td>
+            <td>5 tasks</td>
+            <td><div class="bar-inline"><div class="bar-inline-fill" style="width:60px;background:#6C3CE1;"></div>22 msgs</div></td>
+            <td><span class="tag tag-purple">End Card</span> <span class="tag tag-green">Mechanic</span></td>
+            <td>2 auditors</td>
+          </tr>
+          <tr>
+            <td><span class="game-tag">travel-town</span></td>
+            <td>4 tasks</td>
+            <td><div class="bar-inline"><div class="bar-inline-fill" style="width:40px;background:#6C3CE1;"></div>8 msgs</div></td>
+            <td><span class="tag tag-orange">Triggers</span> <span class="tag tag-purple">Visual</span></td>
+            <td>2 auditors</td>
+          </tr>
+          <tr>
+            <td><span class="game-tag">woodoku-blast</span></td>
+            <td>4 tasks</td>
+            <td><div class="bar-inline"><div class="bar-inline-fill" style="width:40px;background:#6C3CE1;"></div>8 msgs</div></td>
+            <td><span class="tag tag-green">Mechanic</span> <span class="tag tag-purple">Anim</span></td>
+            <td>2 auditors</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Key Findings -->
+  <div class="section">
+    <div class="section-title">Key Patterns Worth Investigating</div>
+    <div class="findings-list">
+
+      <div class="finding-card">
+        <div class="finding-icon red">🔁</div>
+        <div>
+          <div class="finding-title">Compliance issues keep recurring across customer accounts</div>
+          <div class="finding-body">22 tasks (34%) had compliance-related revisions — misleading earnings claims, missing disclaimers, and Sett branding still appearing in shipped builds. These are the same types of issues appearing across free-cash, bubble-cash, solitaire-cash, and others. The Sett logo appearing in 6 tasks suggests it may be a default template issue that Apollo doesn't know to remove. The "you can win X dollars" vs "you could have won" distinction appears in at least 9 tasks, suggesting auditors are having to manually catch something that could be a templated check.</div>
+          <div class="finding-evidence">Task 2024 (solitaire-cash): "let's avoid saying players will win a specific amount, since we can't actually guarantee that" — same feedback seen on tasks 1012, 689, 2266, 2563, 1778, 2567, 1125</div>
+        </div>
+      </div>
+
+      <div class="finding-card">
+        <div class="finding-icon orange">📦</div>
+        <div>
+          <div class="finding-title">Missing network builds is a tail-end delivery problem</div>
+          <div class="finding-body">21 tasks (32%) were flagged for missing network exports — Mintegral, Liftoff, Moloco, Facebook, Smadex, Snapchat. This happens consistently at the end of the delivery process after the PG reviews the build. Apollo likely completes the creative work but doesn't know which networks the customer needs. The customer specification isn't being captured upfront, creating a predictable re-work cycle at the end of every delivery.</div>
+          <div class="finding-evidence">Task 3330 (free-cash): "mintegral and liftoff builds are missing" — then "Also add Snapchat network build" — two separate revision rounds for the same issue</div>
+        </div>
+      </div>
+
+      <div class="finding-card">
+        <div class="finding-icon purple">🎮</div>
+        <div>
+          <div class="finding-title">Game mechanic / experience issues are the most common category but hardest to catch early</div>
+          <div class="finding-body">55% of tasks had mechanic-related revisions — wrong feel, wrong pacing, experience that "doesn't create desire to play." These are harder to systematize than compliance or export issues. The clearest pattern: Apollo delivers builds that are technically correct but experientially flat. The Solitaire Grand Harvest example (3 failed taps before any successful card flip) and Woodoku Blast (concept rework needed) suggest Apollo may be optimizing for spec-compliance rather than experience quality.</div>
+          <div class="finding-evidence">Task 2973 (solitaire-grand-harvest): "The experience still feels like a fail state. Currently there are 3 taps that don't flip any card, and on the 4th tap the user is sent to the store — this doesn't create any desire to play. The player must see successful card flips from the very beginning."</div>
+        </div>
+      </div>
+
+      <div class="finding-card">
+        <div class="finding-icon cyan">🔄</div>
+        <div>
+          <div class="finding-title">High repeat-message rate suggests fixes aren't sticking</div>
+          <div class="finding-body">207 feedback messages across 65 tasks = 3.2 average. But some tasks have far more: Task 2124 (match-factory) had 7 messages about the same 60s timer bug. Task 3179 (bubble-cash) had 3 messages about "CTA out of screen" before it was fixed. Task 2595 (bubble-cash) had 5 identical messages about luxury items claim. When auditors have to repeat the same feedback multiple times, it indicates Apollo is either not retaining feedback between iterations or producing partial fixes. This is the single biggest time sink in the revision process.</div>
+          <div class="finding-evidence">Task 2124: "build not loading" (×2) → "in 60s version there is an error: Cannot read properties of undefined" (×2) → "60s version redirects after 30s" (×2) → "60s version still ends before" (×2) — 8 messages, same root issue</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Methodology -->
+  <div class="methodology">
+    <h3>How I Got To This & Resources I Had Access To</h3>
+    <p><strong>Data sources:</strong></p>
+    <ul style="margin-left:20px;">
+      <li>Production database: <code>orchestration_states</code> table — filtered for <code>status = 'revision'</code> in the last 7 days (March 25 – April 1, 2026)</li>
+      <li>S3 bucket <code>apollo-tasks</code>: retrieved all <code>feedback-*/message.txt</code> files for each task's chat history</li>
+      <li>Joined with <code>orchestration</code>, <code>ideas</code>, and <code>games</code> tables for full context</li>
+      <li>Date range: March 25, 2026 – April 1, 2026 (7 days)</li>
+    </ul>
+    <br>
+    <p><strong>Analysis approach:</strong></p>
+    <ul style="margin-left:20px;">
+      <li>Found 72 revision events in orchestration_states (all at "ideation" stage — these are PG-initiated revision requests)</li>
+      <li>Retrieved 207 actual feedback messages from S3 chat history across 65 unique tasks using concurrent S3 queries</li>
+      <li>Read all 207 messages and classified by issue type using keyword matching + manual review for ambiguous cases</li>
+      <li>Categories allow overlap (one feedback message can touch multiple issue types)</li>
+    </ul>
+    <br>
+    <p><strong>Important caveats:</strong></p>
+    <ul style="margin-left:20px;">
+      <li>All 72 revisions are at the "ideation" stage — this reflects the PG review flow, not auditor-to-Apollo feedback. These are customer-level or PG-level review requests</li>
+      <li>Feedback text is often brief/incomplete; some messages are follow-ups (e.g., "Fixed" or "Added") not actual issue descriptions</li>
+      <li>The repeat-message count inflates totals — some issues appear 4-8x for the same task before resolution</li>
+      <li>Some tasks from the 7-day window may have feedback messages outside the window if the task's original Apollo work started earlier</li>
+      <li>Classification is keyword-based with manual spot-checks; edge cases may be miscategorized</li>
+    </ul>
+  </div>
+
+</div>
+
+<div class="footer">
+  <div>Revision Analysis — Sett Internal · April 1, 2026</div>
+  <div class="footer-brand">— Yoni's Agent</div>
+</div>
+
+<script>
+// Category chart
+const catCtx = document.getElementById('categoryChart').getContext('2d');
+new Chart(catCtx, {
+  type: 'bar',
+  data: {
+    labels: [
+      'Game Mechanic', 'Compliance', 'Visual/Layout',
+      'Store Trigger', 'Build Export', 'Tutorial/UX', 'Bug/Crash'
+    ],
+    datasets: [{
+      label: '% of tasks',
+      data: [55, 43, 48, 49, 32, 18, 26],
+      backgroundColor: [
+        'rgba(34,197,94,0.7)',
+        'rgba(239,68,68,0.7)',
+        'rgba(139,92,246,0.7)',
+        'rgba(245,158,11,0.7)',
+        'rgba(6,182,212,0.7)',
+        'rgba(249,115,22,0.7)',
+        'rgba(236,72,153,0.7)',
+      ],
+      borderColor: [
+        '#22C55E', '#EF4444', '#8B5CF6',
+        '#F59E0B', '#06B6D4', '#F97316', '#EC4899'
+      ],
+      borderWidth: 1,
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    indexAxis: 'y',
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => ` ${ctx.raw}% of tasks`
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid: { color: 'rgba(255,255,255,0.06)' },
+        ticks: { color: '#888', callback: v => v + '%' },
+        max: 70
+      },
+      y: {
+        grid: { display: false },
+        ticks: { color: '#ccc', font: { size: 12 } }
+      }
+    }
+  }
+});
+
+// Games chart
+const gamesCtx = document.getElementById('gamesChart').getContext('2d');
+new Chart(gamesCtx, {
+  type: 'bar',
+  data: {
+    labels: [
+      'free-cash', 'solitaire-cash', 'match-factory',
+      'bubble-cash', 'solitaire-gh', 'bingo-cash',
+      'travel-town', 'woodoku-blast', 'hexa-sort',
+      'dice-dreams'
+    ],
+    datasets: [{
+      label: 'Unique tasks with revisions',
+      data: [11, 11, 8, 7, 5, 5, 4, 4, 3, 1],
+      backgroundColor: [
+        'rgba(108,60,225,0.8)',
+        'rgba(108,60,225,0.75)',
+        'rgba(108,60,225,0.7)',
+        'rgba(108,60,225,0.65)',
+        'rgba(108,60,225,0.6)',
+        'rgba(108,60,225,0.55)',
+        'rgba(108,60,225,0.5)',
+        'rgba(108,60,225,0.45)',
+        'rgba(108,60,225,0.4)',
+        'rgba(108,60,225,0.35)',
+      ],
+      borderColor: 'rgba(108,60,225,1)',
+      borderWidth: 1,
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: {
+          color: '#888',
+          font: { size: 10 },
+          maxRotation: 35,
+          minRotation: 35
+        }
+      },
+      y: {
+        grid: { color: 'rgba(255,255,255,0.06)' },
+        ticks: { color: '#888', stepSize: 2 }
+      }
+    }
+  }
+});
+</script>
+</body>
+</html>
